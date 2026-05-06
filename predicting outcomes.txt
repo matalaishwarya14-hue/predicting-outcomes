@@ -1,0 +1,56 @@
+# Predictive Modeling Using Machine Learning
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (
+    confusion_matrix, ConfusionMatrixDisplay,
+    roc_curve, auc
+)
+
+# Load dataset
+data = load_breast_cancer()
+X, y = data.data, data.target
+
+# Split into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+
+# Initialize models
+models = {
+    "Logistic Regression": LogisticRegression(max_iter=10000),
+    "Decision Tree": DecisionTreeClassifier(random_state=42),
+    "Random Forest": RandomForestClassifier(random_state=42)
+}
+
+# Train and evaluate
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    y_prob = model.predict_proba(X_test)[:, 1]
+
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm,
+                                  display_labels=data.target_names)
+    disp.plot()
+    plt.title(f"{name} - Confusion Matrix")
+    plt.show()
+
+    # ROC Curve
+    fpr, tpr, _ = roc_curve(y_test, y_prob)
+    roc_auc = auc(fpr, tpr)
+    plt.plot(fpr, tpr, label=f"{name} (AUC = {roc_auc:.2f})")
+
+# Final ROC Curve comparison
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve Comparison")
+plt.legend(loc="lower right")
+plt.show()
